@@ -3,6 +3,12 @@
 
 Logged In as {{ user.username }}
 
+<a href="{% url 'CreateToDo' %}">Создать задачу</a>
+<a href="{% url 'CurrentToDo' %}">Текущие задачи</a>
+<a href="{% url 'completedtodos' %}">Выполненные задачи</a>
+
+
+
 <form action="{% url 'logoutuser' %}" method="POST">
     {% csrf_token %}
     <button type="submit">Log out</button>
