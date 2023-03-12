@@ -1,3 +1,5 @@
+import http
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
@@ -7,12 +9,18 @@ from .forms import TodoForm
 from .models import Todo
 from django.utils  import timezone
 from django.contrib.auth.decorators import login_required
+from rest_framework.response import Response
+from .serializers import RegisterSerializer, UserSerializer, LoginSerializer
+from rest_framework import generics, permissions
+from rest_framework.views import APIView
+from django.http import HttpResponseBadRequest
+from django.conf.urls import handler400
 #superusers name - red_ranger
 #password - o711begor
 
 def home(request):
     return render(request, 'todo/home.html')
-def signupuser(request):
+"""def signupuser(request):
     if request.method == "GET":
         return render(request, 'todo/signupuser.html', {'form': UserCreationForm()})
     else:
@@ -26,12 +34,42 @@ def signupuser(request):
                 return render(request, 'todo/signupuser.html',
                               {'form': UserCreationForm(), 'error': 'Это имя пользователя уже используется'})
         else:
-            return render(request, 'todo/signupuser.html', {'form': UserCreationForm(), 'error':'Пароли не совпадают'})
+            return render(request, 'todo/signupuser.html', {'form': UserCreationForm(), 'error':'Пароли не совпадают'})"""
+
+class RegisterView(generics.GenericAPIView):
+    permission_classes = [permissions.AllowAny]
+    serializer_class = RegisterSerializer
+    def get(self, request, *args,  **kwargs):
+        return render(request, 'todo/signupuser.html', {'form': UserCreationForm()})
+    def post(self, request, *args,  **kwargs):
+        try:
+            serializer = self.get_serializer(data=request.data)
+        except:
+            return render(request, 'todo/signupuser.html', {'form': UserCreationForm(), 'error': 'Пароли не совпадают'})
+        try:
+            if serializer.is_valid(raise_exception=True):
+                user = serializer.save()
+                login(request, user)
+                return redirect('CurrentToDo')
+            else:
+                return render(request, 'todo/signupuser.html',
+                              {'form': UserCreationForm(), 'error': 'Это имя пользователя уже используется'})
+        except:
+            return render(request, 'todo/signupuser.html', {'form': UserCreationForm(),
+                                                            'error': 'Пароль должен быть не короче 6 символов'})
+"""
 @login_required
 def logoutuser(request):
     if request.method == "POST":
         logout(request)
         return redirect('home')
+"""
+class LogOutUser(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    def post(self, request, *args, **kwargs):
+        logout(request)
+        return redirect('home')
+
 @login_required
 def CreateToDo(request):
     if request.method == "GET":
@@ -45,7 +83,7 @@ def CreateToDo(request):
             return redirect('CurrentToDo')
         except ValueError:
             return render(request, 'todo/CreateToDo.html', {'form': TodoForm(), 'error': 'Введены неверные данные'})
-
+"""
 def loginuser(request):
     if request.method == "GET":
         return render(request, 'todo/loginuser.html', {'form': AuthenticationForm()})
@@ -56,6 +94,25 @@ def loginuser(request):
         else:
             login(request, user)
             return redirect('CurrentToDo')
+
+"""
+class LogInUser(generics.GenericAPIView):
+    permission_classes = [permissions.AllowAny]
+    serializer_class = LoginSerializer
+    def get(self, request, *args, **kwargs):
+        return render(request, 'todo/loginuser.html', {'form': AuthenticationForm()})
+    def post(self, request, *args,  **kwargs):
+        try:
+            serializer = self.get_serializer(data=request.data)
+            if serializer.is_valid(raise_exception=True):
+                user = serializer.save()
+                login(request, user)
+                return redirect('CurrentToDo')
+        except:
+            return render(request, 'todo/loginuser.html',
+                          {'form': AuthenticationForm(), 'error': 'Неправильный логин или пароль'})
+
+
 @login_required
 def CurrentToDo(request):
     todos = Todo.objects.filter(user=request.user, datecompleted__isnull=True)
