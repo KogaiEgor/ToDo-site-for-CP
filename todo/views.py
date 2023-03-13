@@ -10,11 +10,12 @@ from .models import Todo
 from django.utils  import timezone
 from django.contrib.auth.decorators import login_required
 from rest_framework.response import Response
-from .serializers import RegisterSerializer, UserSerializer, LoginSerializer
+from .serializers import RegisterSerializer, UserSerializer, LoginSerializer, ChangePasswordSerializer
 from rest_framework import generics, permissions
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
 from django.http import HttpResponseBadRequest
-from django.conf.urls import handler400
 #superusers name - red_ranger
 #password - o711begor
 
@@ -47,7 +48,7 @@ class RegisterView(generics.GenericAPIView):
         except:
             return render(request, 'todo/signupuser.html', {'form': UserCreationForm(), 'error': 'Пароли не совпадают'})
         try:
-            if serializer.is_valid(raise_exception=True):
+            if serializer.is_valid(raise_exception=False):
                 user = serializer.save()
                 login(request, user)
                 return redirect('CurrentToDo')
@@ -149,4 +150,50 @@ def deletetodo(request, todo_pk):
         todo.delete()
         return redirect('CurrentToDo')
 
+class ChangePasswordView(generics.UpdateAPIView):
+    """
+    An endpoint for changing password.
+    """
+    serializer_class = ChangePasswordSerializer
+    model = User
+    permission_classes = (IsAuthenticated,)
 
+    def get(self, request, *args, **kwargs):
+        return render(request, 'todo/changepassword.html')
+
+    def post(self, request, *args, **kwargs):
+        if self.update(request):
+            return redirect('CurrentToDo')
+        return render(request, 'todo/changepassword.html', {'error': 'неправильный пароль'})
+
+    def get_object(self, queryset=None):
+        obj = self.request.user
+        return obj
+
+    def update(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            # Check old password
+            if not self.object.check_password(serializer.data.get("old_password")):
+                return False
+            # set_password also hashes the password that the user will get
+            self.object.set_password(serializer.data.get("new_password"))
+            self.object.save()
+            response = {
+                'status': 'success',
+                'code': status.HTTP_200_OK,
+                'message': 'Password updated successfully',
+                'data': []
+            }
+
+            return Response(response)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class PersonalAccount(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        return render(request, 'todo/personalaccount.html')
