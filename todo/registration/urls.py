@@ -1,5 +1,5 @@
 from django.urls import path
-from todo import views
+from todo.registration import views
 from rest_framework.urlpatterns import format_suffix_patterns
 
 urlpatterns = [
