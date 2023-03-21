@@ -8,7 +8,6 @@ from rest_framework import generics, permissions
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
-import io
 
 class RegisterView(generics.GenericAPIView):
     permission_classes = [permissions.AllowAny]
@@ -16,10 +15,7 @@ class RegisterView(generics.GenericAPIView):
     def get(self, request, *args,  **kwargs):
         return render(request, 'todo/signupuser.html', {'form': UserCreationForm()})
     def post(self, request, *args,  **kwargs):
-        try:
-            serializer = self.get_serializer(data=request.data)
-        except:
-            return render(request, 'todo/signupuser.html', {'form': UserCreationForm(), 'error': 'Пароли не совпадают'})
+        serializer = self.get_serializer(data=request.data)
         try:
             if serializer.is_valid(raise_exception=False):
                 user = serializer.save()
@@ -30,7 +26,8 @@ class RegisterView(generics.GenericAPIView):
                               {'form': UserCreationForm(), 'error': 'Это имя пользователя уже используется'})
         except:
             return render(request, 'todo/signupuser.html', {'form': UserCreationForm(),
-                                                            'error': 'Пароль должен быть не короче 6 символов'})
+                                                            'error': 'Неправильно введен пароль'})
+
 
 class LogOutUser(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -53,7 +50,6 @@ class LogInUser(generics.GenericAPIView):
         except:
             return render(request, 'todo/loginuser.html',
                           {'form': AuthenticationForm(), 'error': 'Неправильный логин или пароль'})
-
 
 class ChangePasswordView(generics.UpdateAPIView):
     """

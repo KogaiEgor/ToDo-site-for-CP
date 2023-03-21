@@ -30,7 +30,7 @@ def CurrentToDo(request):
     return render(request, 'todo/CurrentToDo.html', {'todos':todos})
 @login_required
 def completedtodos(request):
-    todos = Todo.objects.filter(user=request.user, datecompleted__isnull=False).order_by('-datecompleted')
+    todos = Todo.objects.filter(user=request.user, iscompleted=True).order_by('-datecompleted')
     return render(request, 'todo/completedtodos.html', {'todos': todos})
 @login_required
 def viewtodo(request, todo_pk):
@@ -51,6 +51,7 @@ def completetodo(request, todo_pk):
     todo = get_object_or_404(Todo, pk=todo_pk, user=request.user)
     if request.method == 'POST':
         todo.datecompleted = timezone.now()
+        todo.iscompleted = True
         todo.save()
         return redirect('CurrentToDo')
 @login_required
