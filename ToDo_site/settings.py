@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'todo',
     'rest_framework',
+    'chartapp.apps.ChartappConfig',
 ]
 
 MIDDLEWARE = [
