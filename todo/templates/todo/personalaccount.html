@@ -22,10 +22,10 @@
                     type: 'bar',
                     data: {
 
-                        labels: ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'],
+                        labels: {{labels|safe}},
                         datasets: [{
-                            label: '# of todos',
-                            data: [5, 7, 2, 0, 1, 4, 0],
+                            label: 'Статистика последних 7 дней',
+                            data: {{data|safe}},
                             backgroundColor: [
                                 'rgba(255, 99, 132, 0.8)',
                                 'rgba(54, 162, 235, 0.8)',

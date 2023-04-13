@@ -1,11 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import TodoForm
 from .models import Todo
-from django.utils  import timezone
+from django.utils import timezone
 from django.contrib.auth.decorators import login_required
-from .models import Product
-from .forms import ProductForm
-
 #superusers name - red_ranger
 #password - o711begor
 
@@ -62,22 +59,3 @@ def deletetodo(request, todo_pk):
     if request.method == 'POST':
         todo.delete()
         return redirect('CurrentToDo')
-
-
-def index(request):
-    products = Product.objects.all()
-
-    if request.method == 'POST':
-        form = ProductForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('index')
-    else:
-        form = ProductForm()
-
-    context = {
-        "products": products,
-        "form": form
-    }
-
-    return render(request, 'chartapp/index.html', context)
