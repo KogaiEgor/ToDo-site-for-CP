@@ -107,6 +107,7 @@ class PersonalAccount(generics.GenericAPIView):
 
     def chart(self, request):
         data = []
+
         labels = []
         some_day_last_week = datetime.now().date() - timedelta(days=7)
 
@@ -122,17 +123,19 @@ class PersonalAccount(generics.GenericAPIView):
         )
         weekdays = {'Sunday': 'Воскресенье', 'Monday': 'Понедельник', 'Tuesday': 'Вторник', 'Wednesday': 'Среда',
                     'Thursday': 'Четверг', 'Friday': 'Пятница', 'Saturday': 'Суббота'}
-
-        temp_weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday',
-                    'Thursday', 'Friday', 'Saturday']
-
+        temp_labels = list(weekdays)
         for todo in qs:
             data.append(todo['created_count'])
             labels.append(todo['day'].strftime("%A"))
+        temp_labels = temp_labels[temp_labels.index(datetime.today().strftime('%A')) + 1:] + \
+                      temp_labels[0:temp_labels.index(datetime.today().strftime('%A')) + 1]
+        for i in range(7):
+            if temp_labels[i] not in labels:
+                labels.insert(i, temp_labels[i])
+                data.insert(i, 0)
+        for i in range(len(labels)):
+            labels[i] = weekdays[labels[i]]
 
-        """for i in range(7):
-            if temp_weekdays[i] not in labels:
-                labels.append(temp_weekdays[i])"""
 
         return render(request, 'todo/personalaccount.html',
                       {'labels': labels,
