@@ -1,9 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import TodoForm
 from .models import Todo
-from django.utils  import timezone
+from django.utils import timezone
 from django.contrib.auth.decorators import login_required
-
 #superusers name - red_ranger
 #password - o711begor
 
@@ -60,4 +59,3 @@ def deletetodo(request, todo_pk):
     if request.method == 'POST':
         todo.delete()
         return redirect('CurrentToDo')
-

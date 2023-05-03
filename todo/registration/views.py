@@ -2,12 +2,17 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.contrib.auth import login, logout
+from django.db.models.functions import TruncDay, TruncDate
 from rest_framework.response import Response
 from .serializers import RegisterSerializer, LoginSerializer, ChangePasswordSerializer
 from rest_framework import generics, permissions
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
+from todo.models import Todo
+from django.utils import timezone
+from datetime import timedelta, datetime
+from django.db.models import Count
 
 class RegisterView(generics.GenericAPIView):
     permission_classes = [permissions.AllowAny]
@@ -98,5 +103,41 @@ class PersonalAccount(generics.GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         user = request.user.get_username()
-        return render(request, 'todo/personalaccount.html')
+        return self.chart(request)
+
+    def chart(self, request):
+        data = []
+
+        labels = []
+        some_day_last_week = datetime.now().date() - timedelta(days=7)
+
+        qs = Todo.objects.filter(
+            user=request.user,
+            datecompleted__isnull=False,
+            datecompleted__gte=some_day_last_week,
+        )
+        qs = qs.values("datecompleted").annotate(
+            day=TruncDay('datecompleted'),
+        ).values('day').annotate(
+            created_count=Count('day')
+        )
+        weekdays = {'Sunday': 'Воскресенье', 'Monday': 'Понедельник', 'Tuesday': 'Вторник', 'Wednesday': 'Среда',
+                    'Thursday': 'Четверг', 'Friday': 'Пятница', 'Saturday': 'Суббота'}
+        temp_labels = list(weekdays)
+        for todo in qs:
+            data.append(todo['created_count'])
+            labels.append(todo['day'].strftime("%A"))
+        temp_labels = temp_labels[temp_labels.index(datetime.today().strftime('%A')) + 1:] + \
+                      temp_labels[0:temp_labels.index(datetime.today().strftime('%A')) + 1]
+        for i in range(7):
+            if temp_labels[i] not in labels:
+                labels.insert(i, temp_labels[i])
+                data.insert(i, 0)
+        for i in range(len(labels)):
+            labels[i] = weekdays[labels[i]]
+
+
+        return render(request, 'todo/personalaccount.html',
+                      {'labels': labels,
+                        'data': data })
 
