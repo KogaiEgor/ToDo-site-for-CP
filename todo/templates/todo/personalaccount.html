@@ -4,18 +4,16 @@
 
 <h1>Личный кабинет</h1>
 <br>
-<div class="alert alert-danger" role="alert">
-    {{ user.get_username }}
+<div class="alert alert-info" role="alert">
+    <center> <b>Здравствуйте,<b> <b>{{ user.get_username }}<b> </center>
 </div>
-<br>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.0.2/dist/chart.min.js"></script>
-
 <a role="button" class="btn btn-primary btn-lg" href="{% url 'changepassword' %}">
     Cменить пароль
 </a>
 
         <div class="col-md-8">
-            <canvas id="myChart" width="400" height="250"></canvas>
+           </div> <canvas id="myChart" width="800" height="450"></canvas>
                 <script>
                 var ctx = document.getElementById('myChart').getContext('2d');
                 var myChart = new Chart(ctx, {
